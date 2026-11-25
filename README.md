@@ -1,5 +1,49 @@
 # DWI-to-Anatomical MRI Registration
 
+<!-- brainlife-app:begin (generated from the App manifest; edit the manifest, not this block) -->
+
+> **Registers DWI to an anatomical reference (T1w, T2w or FA) with ANTs, using the b0 volume and translation, rigid, affine or SyN stages, applies the transform to the full DWI with MRtrix3 and produces QC figures.**
+
+Extracts the first b=0 (or lowest-b) volume, registers it to the chosen anatomical image with antsRegistration up to the selected transformation stage and pyramid depth, then applies the affine and warp to the 4-D DWI (with b-vector handling) and writes before/after QC figures. Provide one fixed image: T1w, T2w or a tensor dataset (FA is used). Optionally checks white-matter overlap on FA before and after registration (qc_wm).
+
+| | |
+|---|---|
+| 📥 **Inputs** | `neuro/dwi` · `neuro/anat/t1w` (optional) · `neuro/anat/t2w` (optional) · `neuro/tensor` (optional) |
+| 📤 **Outputs** | `neuro/transform/nifti` · `neuro/dwi` · `generic/images` |
+| 🐳 **Container** | `gamorosino/tract_align:v1.1` |
+| ⚙️ **Resources** | 1 CPUs · 2 h walltime |
+| 🔗 **Run it** | [doi.org/10.25663/brainlife.app.857](https://doi.org/10.25663/brainlife.app.857) |
+
+#### 📥 Inputs
+
+| Input | Datatype | Required | Description |
+|---|---|---|---|
+| `dwi` | `neuro/dwi` | yes | 4-D diffusion-weighted image with bvals and bvecs (moving image). |
+| `t1_fixed` | `neuro/anat/t1w` | no | T1-weighted image used as the fixed reference. |
+| `t2_fixed` | `neuro/anat/t2w` | no | T2-weighted image used as the fixed reference if no T1w is given. |
+| `tensor_fixed` | `neuro/tensor` | no | Tensor dataset whose FA map is used as the fixed reference if no anatomical image is given. |
+
+#### 📤 Outputs
+
+| Output | Datatype | Description |
+|---|---|---|
+| `transformations` | `neuro/transform/nifti` | ANTs affine matrix and warp fields mapping the DWI to the anatomical reference. |
+| `transformed` | `neuro/dwi` | DWI resampled into the anatomical reference space, with bvals and bvecs. |
+| `figures` | `generic/images` | Before/after registration QC figures (orthogonal views and slices). |
+
+<details>
+<summary><b>⚙️ Parameters</b> (3)</summary>
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `settings` | enum | `4` | The `settings` parameter controls the depth of the multiresolution (pyramidal) registration strategy used by ANTs. Higher settings correspond to more levels in the registration pyramid, starting from coarse alignment and progressively refining toward finer spatial correspondence. Options: `1`, `2`, `3`, `4`. |
+| `transformation` | enum | `rigid` | Highest registration stage to run: translation, rigid, affine or nonlinear (SyN); each stage includes the previous ones. Options: `translation`, `rigid`, `affine`, `nonlinear`. |
+| `qc_wm` | boolean | `false` | Fits a diffusion tensor model on both the pre- and post-registration DWI, thresholds FA ≥ 0.35 to produce a white matter mask, and overlays it in blue on all QC images so you can verify that the WM geometry aligns with the reference anatomy after registration. |
+
+</details>
+
+<!-- brainlife-app:end -->
+
 A reproducible and automated pipeline to align diffusion-weighted imaging (DWI) data to anatomical MRI references (e.g., T1-weighted) using configurable transformation stages. The workflow includes b=0 extraction, multi-stage registration (translation, rigid, affine, nonlinear), and full-volume transformation, ensuring spatial alignment suitable for tractography and cross-modal analyses.
 
 ---
